@@ -143,23 +143,23 @@
       generateLevelButtons();
     }
 
-    function generateLevelButtons(){
-      const container = document.getElementById("levelButtons");
-      container.innerHTML = "";
-
-      monsters.forEach((monster, index){
-        const btn = document.createElement("button");
-        btn.textContent = `LV${index + 1}: ${monster.name}`;
-        btn.onclick = (){
-          currentMonster = index;
-          document.getElementById("levelSelectScreen").classList.add("hidden");
-          document.getElementById("gameScreen").classList.remove("hidden");
-          document.getElementById("bgMusic").play();
-          showMonster();
-        };
-        container.appendChild(btn);
-      });
-    }
+   function generateLevelButtons() {
+     const container = document.getElementById("levelButtons");
+     container.innerHTML = "";
+     
+     monsters.forEach((monster, index) => {
+       const btn = document.createElement("button");
+       btn.textContent = `LV${index + 1}: ${monster.name}`;
+       btn.onclick = () => {
+         currentMonster = index;
+         document.getElementById("levelSelectScreen").classList.add("hidden");
+         document.getElementById("gameScreen").classList.remove("hidden");
+         document.getElementById("bgMusic").play();
+         showMonster();
+      };
+       container.appendChild(btn);
+     });
+   }
 
     function showMonster() {
       playerHP = 3;
@@ -242,7 +242,7 @@
       document.getElementById("endMessage").textContent = msg;
       localStorage.removeItem("playerName");
     }
-    window.onload = (){
+    window.onload = () => {
       const savedName = localStorage.getItem("playerName");
       if (savedName) {
         playerName = savedName;
