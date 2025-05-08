@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>拯救材科館大挑戰</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    img.monster {
+      width: 200px;
+      animation: float 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0px); }
+    }
+    .question-block {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .choices button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .choices button.correct {
+      background-color: #c6f6c3;
+    }
+    .choices button.wrong {
+      background-color: #f6c3c3;
+    }
+    .hp {
+      margin: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<audio id="bgMusic" loop>
+    <source src="luther.mp3" type="audio/mpeg" />
+  </audio>
+  <!-- 音樂開關按鈕 -->
+  <button onclick="toggleMusic()">🎵 音樂開關</button>
+
+  <div class="container">
+    <div id="startScreen">
+      <h1>拯救材科館大挑戰</h1>
+      <input type="text" id="playerName" placeholder="請輸入你的名字" />
+      <button onclick="startGame()">開始挑戰</button>
+    </div>
+    <div id="gameScreen" class="hidden">
+      <div id="status">
+        <p class="hp" id="playerHP"></p>
+        <p class="hp" id="monsterHP"></p>
+      </div>
+      <img id="monsterImg" class="monster" src="" alt="怪物" />
+      <div id="questionContainer"></div>
+    </div>
+    <div id="endScreen" class="hidden">
+      <h2 id="endMessage"></h2>
+    </div>
+  </div>
+  <script>
+    const monsters = [
+      {
+        name: "Goblin",
+        image: "https://i.imgur.com/GEEBOP3.png",
+        questions: [
+          { q: "清華材料科技館主要介紹哪個主題？", c: ["A. 動物演化", "B. 建築歷史", "C. 材料科學與應用", "D. 食品營養"], a: "C" },
+          { q: "哪一種金屬可以在加熱後回復原來的形狀？", c: ["A. 鋁", "B. 鋼鐵", "C. 鈦合金", "D. 形狀記憶合金"], a: "D" },
+          { q: "虛擬實境（VR）導覽的特色是？", c: ["A. 只能看影片", "B. 能模擬走進展場並與展品互動", "C. 聽語音介紹", "D. 遠端操作電腦"], a: "B" }
+        ]
+      },
+      {
+        name: "Troll",
+        image: "https://i.imgur.com/n4CgCDg.png",
+        questions: [
+          { q: "奈米材料的「奈米」指的是？", c: ["A. 一種金屬", "B. 一種顏色", "C. 非常小的長度單位", "D. 電子產品品牌"], a: "C" },
+          { q: "下列哪一種是「高分子材料」？", c: ["A. 鐵片", "B. 玻璃杯", "C. 塑膠袋", "D. 鉛筆芯"], a: "C" },
+          { q: "3D列印是怎麼製作立體物品的？", c: ["A. 用模具壓出來", "B. 用雷射雕刻", "C. 一層層堆疊材料", "D. 切割木頭再黏合"], a: "C" }
+        ]
+      },
+      {
+        name: "Snake",
+        image: "https://i.imgur.com/ifuxDwX.png",
+        questions: [
+          { q: "哪一個屬於「再生材料」的應用？", c: ["A. 鐵礦石煉鐵", "B. 用塑膠瓶做衣服", "C. 木材建屋", "D. 用玻璃做窗戶"], a: "B" },
+          { q: "為什麼金屬比木頭更容易導熱？", c: ["A. 比較重", "B. 原子排列更規則", "C. 表面光滑", "D. 金屬比較貴"], a: "B" },
+          { q: "「生醫材料」主要應用在？", c: ["A. 藥品包裝", "B. 醫療植入物與假體", "C. 體育用品", "D. 書本印刷"], a: "B" }
+        ]
+      },
+      {
+        name: "Wolf",
+        image: "https://i.imgur.com/zstl4xQ.png",
+        questions: [
+          { q: "熱處理對金屬材料的主要影響是？", c: ["A. 改變顏色", "B. 讓它變輕", "C. 改變硬度和強度", "D. 讓它變成液體"], a: "C" },
+          { q: "哪一個展品主題可能會出現在清大材料科技館？", c: ["A. 植物分類", "B. 光電材料", "C. 火山噴發", "D. 運動科學"], a: "B" },
+          { q: "在VR導覽中，觀眾可以做什麼？", c: ["A. 自由移動並點選展品獲得說明", "B. 玩射擊遊戲", "C. 改變展品內容", "D. 拍照上傳打卡"], a: "A" }
+        ]
+      },
+      {
+        name: "Dragon",
+        image: "https://i.imgur.com/YkP9G9s.png",
+        questions: [
+          { q: "清大材料科技館希望參觀者從中學到什麼？", c: ["A. 如何畫畫", "B. 如何變聰明", "C. 材料如何應用在生活和科技中", "D. 各國文化差異"], a: "C" },
+          { q: "為什麼奈米材料特別？", c: ["A. 比其他材料便宜", "B. 容易用肉眼觀察", "C. 在很小的尺度下會出現特別的性質", "D. 只用在機器人上"], a: "C" },
+          { q: "哪一種材料常被用在太陽能板中？", c: ["A. 鐵", "B. 銅", "C. 矽", "D. 鋁箔"], a: "C" }
+        ]
+      }
+    ];
+
+    let playerHP = 3;
+    let monsterHP = 3;
+    let currentMonster = 0;
+    let playerName = "";
+
+    function startGame() {
+      playerName = document.getElementById("playerName").value;
+      if (!playerName) return alert("請輸入名字！");
+      localStorage.setItem("playerName", playerName);
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("gameScreen").classList.remove("hidden");
+      document.getElementById("bgMusic").play();
+      showMonster();
+    }
+
+    function showMonster() {
+      playerHP = 3;
+      monsterHP = 3;
+      questionsAnswered = 0;
+      answeredQuestions = new Array(3).fill(false);
+      document.getElementById("playerHP").textContent = `${playerName} HP: ${playerHP}`;
+      document.getElementById("monsterHP").textContent = `${monsters[currentMonster].name} HP: ${monsterHP}`;
+      document.getElementById("monsterImg").src = monsters[currentMonster].image;
+      renderQuestions();
+    }
+
+    let questionsAnswered = 0;
+    let answeredQuestions = [];
+
+    function renderQuestions() {
+      const container = document.getElementById("questionContainer");
+      container.innerHTML = "";
+      monsters[currentMonster].questions.forEach((q, index) => {
+        const block = document.createElement("div");
+        block.className = "question-block";
+        block.innerHTML = `<p>${index + 1}. ${q.q}</p>`;
+        const btns = document.createElement("div");
+        btns.className = "choices";
+        q.c.forEach((choice) => {
+          const btn = document.createElement("button");
+          btn.textContent = choice;
+          btn.onclick = () => handleAnswer(btn, choice, q.a, index, btns);
+          btns.appendChild(btn);
+        });
+        block.appendChild(btns);
+        container.appendChild(block);
+      });
+    }
+
+    function handleAnswer(button, selected, correct, index, btnContainer) {
+      if (answeredQuestions[index]) return; // Already answered correctly
+
+      if (selected.startsWith(correct)) {
+        monsterHP--;
+        answeredQuestions[index] = true;
+        button.classList.add("correct");
+        disableChoices(btnContainer);
+      } else {
+        playerHP--;
+        button.classList.add("wrong");
+      }
+
+      document.getElementById("playerHP").textContent = `${playerName} HP: ${playerHP}`;
+      document.getElementById("monsterHP").textContent = `${monsters[currentMonster].name} HP: ${monsterHP}`;
+
+      checkProgress();
+    }
+
+    function disableChoices(container) {
+      const buttons = container.querySelectorAll("button");
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    function checkProgress() {
+      if (playerHP <= 0) {
+        endGame("你被擊敗了");
+      } else if (answeredQuestions.filter(a => a).length === 3) {
+        if (monsterHP <= 0) {
+          currentMonster++;
+          if (currentMonster >= monsters.length) {
+            endGame("你拯救了材科館！");
+          } else {
+            showMonster();
+          }
+        } else {
+          endGame("你被擊敗了");
+        }
+      }
+    }
+
+    function endGame(msg) {
+      document.getElementById("gameScreen").classList.add("hidden");
+      document.getElementById("endScreen").classList.remove("hidden");
+      document.getElementById("endMessage").textContent = msg;
+      localStorage.removeItem("playerName");
+    }
+  </script>
+</body>
+</html>
