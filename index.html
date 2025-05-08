@@ -64,6 +64,10 @@
       <input type="text" id="playerName" placeholder="請輸入你的名字" />
       <button onclick="startGame()">開始挑戰</button>
     </div>
+    <div id="levelSelectScreen" class="hidden">
+      <h2>選擇要挑戰的怪物</h2>
+      <div id="levelButtons"></div>
+    </div>
     <div id="gameScreen" class="hidden">
       <div id="status">
         <p class="hp" id="playerHP"></p>
@@ -135,9 +139,26 @@
       if (!playerName) return alert("請輸入名字！");
       localStorage.setItem("playerName", playerName);
       document.getElementById("startScreen").classList.add("hidden");
-      document.getElementById("gameScreen").classList.remove("hidden");
-      document.getElementById("bgMusic").play();
-      showMonster();
+      document.getElementById("levelSelectScreen").classList.remove("hidden");
+      generateLevelButtons();
+    }
+
+    function generateLevelButtons(){
+      const container = document.getElemetById("levelButtons");
+      container.innerHTML = "";
+
+      monster.forEach((monster, index){
+        const btn = document.createElement("button");
+        btn.textContent = `LV${index+1}: $(monster.name)`;
+        btn.onclick = (){
+          currentMonster = index;
+          document.getElementById("levelSelectScreen").classList.add("hidden");
+          document.getElementById("gameScreen").classList.remove("hidden");
+          document.getElementById("bgMusic").play();
+          showMonster();
+        };
+        container.appendChild(btn);
+      });
     }
 
     function showMonster() {
